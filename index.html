@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ওয়ারিশ সনদপত্র জেনারেটর - শ্রীপুর পৌরসভা</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .form-container {
+            max-width: 800px;
+            margin: 0 auto 30px auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .form-container h2 {
+            margin-top: 0;
+            color: #006a4e;
+            border-bottom: 2px solid #006a4e;
+            padding-bottom: 10px;
+        }
+        .form-group {
+            margin-bottom: 12px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .row {
+            display: flex;
+            gap: 15px;
+        }
+        .col {
+            flex: 1;
+        }
+        .btn-success {
+            background-color: #006a4e;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            width: 100%;
+            margin-top: 15px;
+        }
+        .btn-success:hover {
+            background-color: #135231;
+        }
+        .btn-add {
+            background-color: #2575fc;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .btn-remove {
+            background-color: #d92626;
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            float: right;
+            margin-top: -5px;
+        }
+        .warish-row {
+            background: #f9f9f9;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            position: relative;
+        }
+        
+        /* --- ওয়ান-পেজ প্রিন্ট ও জলছাপ ডিজাইন --- */
+        .preview-area {
+            display: none;
+            margin-top: 20px;
+        }
+        .certificate-container {
+            width: 210mm; 
+            height: 297mm; 
+            margin: 0 auto;
+            background: #fff;
+            padding: 15mm 15mm 10mm 15mm; 
+            border: 2px solid #006a4e;
+            box-sizing: border-box;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            z-index: 1;
+        }
+        
+        /* জলছাপ */
+        .watermark-bg {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 350px;
+            height: 350px;
+            opacity: 0.08;
+            z-index: -1;
+            pointer-events: none;
+            display: none;
+        }
+        .watermark-bg img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* হেডার */
+        .header {
+            display: flex;
+            align-items: center;
+            position: relative;
+            margin-bottom: 2px;
+            min-height: 120px;
+        }
+        .logo-left-box {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 100px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .logo-left-box img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        .header-text-container {
+            width: 100%;
+            text-align: center;
+            padding-left: 110px;
+        }
+        .office-title {
+            font-size: 34px;
+            font-weight: bold;
+            color: #00a65a;
+            margin: 0;
+            letter-spacing: 1px;
+        }
+        .office-location {
+            font-size: 24px;
+            font-weight: bold;
+            color: #802020;
+            margin: 3px 0;
+        }
+        .office-established {
+            font-size: 14px;
+            color: #111;
+            font-weight: bold;
+            margin: 2px 0 5px 0;
+        }
+        
+        /* ফোন, ইমেইল, ওয়েবসাইট একদম সোজা নিচে নিচে রাখার লেআউট */
+        .office-contact-row {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 13px;
+            font-weight: bold;
+            color: #222;
+            line-height: 1.5;
+        }
+        .office-contact-row div {
+            width: auto;
+            text-align: left;
+        }
+        
+        .header-double-border {
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        .border-maroon {
+            height: 3px;
+            background-color: #802020;
+            width: 100%;
+        }
+        .border-lime {
+            height: 3px;
+            background-color: #82cd32;
+            width: 100%;
+            margin-top: 1px;
+        }
+
+        /* সনদ নং ও তারিখ "ওয়ারিশ সনদ পত্র" এর উপরে বসানোর স্টাইল */
+        .meta-info-top {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            font-weight: bold;
+            color: #006a4e;
+            margin-bottom: 5px;
+            padding: 0 5px;
+        }
+
+        .certificate-title {
+            font-size: 24px;
+            color: #f42a41;
+            margin: 5px 0 20px 0;
+            font-weight: bold;
+            text-align: center;
+            text-decoration: underline;
+        }
+        
+        .personal-info {
+            margin-bottom: 15px;
+            line-height: 1.8;
+            font-size: 15px; 
+            text-align: justify;
+            text-indent: 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            margin-bottom: 15px;
+        }
+        th, td {
+            border: 1px solid #aaa;
+            padding: 6px 4px; 
+            text-align: center;
+            font-size: 13px; 
+        }
+        th {
+            background-color: #006a4e;
+            color: white;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #fdfdfd;
+        }
+        .declaration {
+            font-size: 15px;
+            text-align: justify;
+            line-height: 1.8;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            text-indent: 25px;
+        }
+        
+        /* ফুটার লেআউট */
+        .footer-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: auto; 
+            padding-bottom: 10px;
+        }
+        .footer-left, .footer-right {
+            width: 33%;
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            color: #222;
+        }
+        .footer-left {
+            border-top: 1px dashed #333;
+            padding-top: 8px;
+            padding-bottom: 14px; 
+        }
+        .footer-right {
+            border-top: 1px dashed #333;
+            padding-top: 8px;
+        }
+        .footer-subtext {
+            font-size: 11px;
+            font-weight: normal;
+            margin-top: 2px;
+            color: #444;
+        }
+        .qr-code-box {
+            width: 33%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .qr-code-box img {
+            border: 1px solid #ccc;
+            padding: 3px;
+            background: #fff;
+            width: 90px !important;
+            height: 90px !important;
+        }
+        
+        .footer-text {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 10px;
+            color: #666;
+            border-top: 1px solid #ddd;
+            padding-top: 5px;
+        }
+        
+        @media print {
+            body {
+                background-color: #fff;
+                padding: 0;
+                margin: 0;
+            }
+            .form-container, .print-btn-main {
+                display: none !important;
+            }
+            .preview-area {
+                display: block !important;
+                margin-top: 0 !important;
+            }
+            .watermark-bg {
+                display: block !important;
+            }
+            .certificate-container {
+                border: 2px solid #006a4e !important;
+                box-shadow: none !important;
+                width: 210mm !important;
+                height: 297mm !important;
+                page-break-inside: avoid;
+                page-break-after: avoid;
+                -webkit-print-color-adjust: exact; 
+                color-adjust: exact;
+            }
+            @page {
+                size: A4;
+                margin: 0; 
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="form-container" id="formContainer">
+    <h2>ওয়ারিশ সনদের ডাটা ইনপুট ফর্ম</h2>
+    <form id="certForm">
+        <div class="row">
+            <div class="form-group col">
+                <label>সনদ নং:</label>
+                <input type="text" id="input_sonod_no" value="০০১২৫২" required>
+            </div>
+            <div class="form-group col">
+                <label>তারিখ:</label>
+                <input type="text" id="input_date" value="৩০-০৬-২০২৬" required>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label style="color: #d92626;">পৌরসভা/ইউনিয়নের লোগো আপলোড করুন (ছবি):</label>
+            <input type="file" id="input_logo" accept="image/*" required>
+        </div>
+
+        <!-- সনদে দেখানোর মূল বিবরণী (বয়ান) -->
+        <div class="form-group">
+            <label style="color: #006a4e;">সনদের মূল বিবরণী (বয়ান):</label>
+            <textarea id="input_boyan" rows="5" required>এই মর্মে প্রত্যয়ন করা যাচ্ছে যে, মৃত-সাফিজ উদ্দিন মৃত্যু সনদ নং:১৯৫৮৩৩২৫৫০৪০০৫৪৩৬, পিতাঃ আঃ মান্নান, মাতাঃ ফালানী, ঠিকানাঃ বাড়ী নং- ৬৬৫, ব্লক- সি, ওয়ার্ড-০৪, গ্রামঃ ভাংনাহাটি, ডাকঘরঃ কেওয়া বাজার, শ্রীপুর পৌরসভা, গাজীপুর। তিনি শ্রীপুর পৌরসভার স্থায়ী বাসিন্দা ছিলেন। সংশ্লিষ্ট ওয়ার্ড পৌরসভার কর্মসম্পাদন সহায়তা কমিটি জনাব ফাতেমা নাছরিন এর সুপারিশ মোতাবেক ওয়ারিশ সনদপত্র প্রদান করা হল।</textarea>
+        </div>
+
+        <!-- কিউআর কোড স্ক্যানিং ডাটা ফিল্ড -->
+        <div style="border: 1px dashed #ccc; padding: 10px; margin-bottom: 15px; background: #fafafa;">
+            <h4 style="margin: 0 0 10px 0; color: #555;">কিউআর কোড স্ক্যানিং ডাটা ফিল্ড (আগের ফরম্যাট)</h4>
+            <div class="form-group">
+                <label>মৃত ব্যক্তির নাম:</label>
+                <input type="text" id="qr_name" value="মৃত- সাফিজ উদ্দিন">
+            </div>
+            <div class="row">
+                <div class="form-group col"><label>পিতার নাম:</label><input type="text" id="qr_father" value="মৃত- আঃ মান্নান"></div>
+                <div class="form-group col"><label>মাতার নাম:</label><input type="text" id="qr_mother" value="ফালানী বেগম"></div>
+            </div>
+            <div class="form-group">
+                <label>ঠিকানা:</label>
+                <input type="text" id="qr_address" value="বাড়ী নং-৬৬৫, ব্লক-সি, ওয়ার্ড-০৪, গ্রামঃ ভাংনাহাটি, ডাকঘরঃ কেওয়া বাজার, শ্রীপুর পৌরসভা, গাজীপুর।">
+            </div>
+        </div>
+
+        <h3>ওয়ারিশগণের তালিকা:</h3>
+        <button type="button" class="btn-add" onclick="addWarishField()">＋ নতুন ওয়ারিশ সংযুক্ত করুন</button>
+        
+        <div id="warish_inputs_container">
+            <!-- আপনার আগের চেনা চেনা ইনপুট স্ট্রাকচারটি হুবহু ফিরে এসেছে -->
+        </div>
+
+        <button type="button" class="btn-success" onclick="generateCertificate()">সনদপত্র তৈরি করুন</button>
+    </form>
+</div>
+
+<!-- প্রিভিউ এরিয়া -->
+<div class="preview-area" id="previewArea">
+    <div style="max-width: 210mm; margin: 0 auto 10px auto; display: flex; gap: 10px; justify-content: flex-end;" class="print-btn-main">
+        <button onclick="editForm()" style="padding: 10px 20px; font-size:14px; font-weight:bold; background-color: #2575fc; color:white; border:none; border-radius:4px; cursor:pointer;">তথ্য সংশোধন করুন</button>
+        <button onclick="window.print()" style="padding: 10px 20px; font-size:14px; font-weight:bold; background-color: #f42a41; color:white; border:none; border-radius:4px; cursor:pointer;">সনদটি প্রিন্ট / PDF সেভ করুন</button>
+    </div>
+
+    <div class="certificate-container" id="certContainer">
+        <div class="watermark-bg" id="watermarkBg">
+            <img id="view_logo_watermark" src="" alt="Watermark">
+        </div>
+
+        <!-- হেডার -->
+        <div class="header">
+            <div class="logo-left-box">
+                <img id="view_logo_left" src="" alt="Logo">
+            </div>
+            <div class="header-text-container">
+               	<div class="office-title">শ্রীপুর পৌরসভা কার্যালয়</div>
+				<div class="office-location">শ্রীপুর, গাজীপুর।</div>
+                <div class="office-established">স্থাপিত: ২০০০খ্রিঃ</div>
+                <div class="office-contact-row">
+						<div>ফোনঃ ০২৯৯-৬৬১৪২১০</div>
+						<div><b>ই-মেইলঃ</b> sreepurpourashava@gmail.com</div>
+						<div><b>ওয়েবসাইটঃ</b> pourashava.sreepur.gazipur.gov.bd</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="header-double-border">
+            <div class="border-maroon"></div>
+            <div class="border-lime"></div>
+        </div>
+
+        <!-- নতুন রিকোয়েস্ট অনুযায়ী: সনদ নং ও তারিখ এখন ওয়ারিশ সনদ এর একদম উপরে থাকবে -->
+        <div class="meta-info-top">
+            <div id="view_sonod_no"></div>
+            <div id="view_date"></div>
+        </div>
+
+        <div class="certificate-title">ওয়ারিশ সনদ পত্র</div>
+
+        <!-- সনদের ডাইনামিক বয়ান -->
+        <div class="personal-info" id="view_boyan"></div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 8%;">ক্রমিক</th>
+                    <th style="width: 32%;">নাম</th>
+                    <th style="width: 25%;">এন.আই.ডি/জন্ম নিবন্ধন নং</th>
+                    <th style="width: 15%;">জন্ম তারিখ</th>
+                    <th style="width: 10%;">সম্পর্ক</th>
+                    <th style="width: 10%;">মন্তব্য</th>
+                </tr>
+            </thead>
+            <tbody id="warish_table_body"></tbody>
+        </table>
+
+        <div class="declaration">
+            তদন্ত ও রেকর্ডপত্র পর্যালোচনা করিয়া দেখা গেল যে, উক্ত মৃত ব্যক্তি উপরোল্লিখিত <span id="view_total_warish" style="font-weight: bold;">০</span> জন আইনানুগ বৈধ ওয়ারিশ ব্যতীত অন্য কোনো ওয়ারিশ নাই। আমি তাহাদের সর্বাঙ্গীন কল্যাণ ও দীর্ঘায়ু কামনা করি।
+        </div>
+
+        <!-- ফুটার সেকশন -->
+        <div class="footer-section">
+            <div class="footer-left">
+                প্রস্তুতকারীর স্বাক্ষর
+            </div>
+            
+            <div class="qr-code-box">
+                <div id="qrcode_area"></div>
+            </div>
+            
+            <div class="footer-right">
+                প্রশাসক
+                <div class="footer-subtext">শ্রীপুর পৌরসভা, গাজীপুর।</div>
+            </div>
+        </div>
+
+        <div class="footer-text">
+            copyright@2022-2026 শ্রীপুর পৌরসভা, All rights reserved <br>
+            Design & Developed By 2A IT LIMITED
+        </div>
+    </div>
+</div>
+
+<script>
+    // ডিফল্ট ওয়ারিশ তালিকা
+    const defaultWarish = [
+        { name: " ", nid: "৭৩৩৬৯৯০৬৬৩", dob: "২০-০৬-১৯৬৭", relation: " ", comment: "" },
+        { name: "মোঃ ফারুক আহম্মেদ", nid: "৩৭৮১৪৮৬০৩৪", dob: "১০-১০-১৯৯২", relation: "পুত্র", comment: "" },
+        { name: "মোঃ কামরুজ্জামান", nid: "৮۶৬২৮৭২৮৮৯", dob: "০৫-১০-১৯৯২", relation: "পুত্র", comment: "" },
+        { name: "পারুল", nid: "৮২৩৬৯十五章৮", dob: "১০-০৩-১৯৮৮", relation: "কন্যা", comment: "" },
+        { name: "রুমি", nid: "৬৪৩৬৮৭২২১৯", dob: "০১-০১-১৯৮৭", relation: "কন্যা", comment: "" }
+    ];
+
+    function toBanglaNum(num) {
+        const banglaNums = {'0':'০','1':'১','2':'২','3':'৩','4':'৪','5':'৫','6':'৬','7':'৭','8':'৮','9':'৯'};
+        return num.toString().split('').map(x => banglaNums[x] || x).join('');
+    }
+
+    // আগের মতো চেনা ও সহজ পদ্ধতিতে নতুন ওয়ারিশ ফিল্ড তৈরি (১০০% ইনপুট বান্ধব)
+    function addWarishField(data = {name:'', nid:'', dob:'', relation:'', comment:''}) {
+        const container = document.getElementById('warish_inputs_container');
+        const div = document.createElement('div');
+        div.className = 'warish-row';
+        div.innerHTML = `
+            <button type="button" class="btn-remove" onclick="this.parentElement.remove(); updateTitles();">বাদ দিন</button>
+            <strong class="warish-title">ওয়ারিশ</strong>
+            <div class="row">
+                <div class="form-group col"><input type="text" class="w_name" value="${data.name}" placeholder="নাম" required></div>
+                <div class="form-group col"><input type="text" class="w_nid" value="${data.nid}" placeholder="NID / জন্ম নিবন্ধন নং" required></div>
+            </div>
+            <div class="row">
+                <div class="form-group col"><input type="text" class="w_dob" value="${data.dob}" placeholder="জন্ম তারিখ" required></div>
+                <div class="form-group col"><input type="text" class="w_rel" value="${data.relation}" placeholder="সম্পর্ক" required></div>
+                <div class="form-group col"><input type="text" class="w_com" value="${data.comment}" placeholder="মন্তব্য"></div>
+            </div>
+        `;
+        container.appendChild(div);
+        updateTitles();
+    }
+
+    function updateTitles() {
+        const titles = document.getElementsByClassName('warish-title');
+        for(let i=0; i<titles.length; i++) {
+            titles[i].innerText = `ওয়ারিশ নং ${toBanglaNum(i+1)}`;
+        }
+    }
+
+    // শুরুতে ডিফল্ট ৫ জনের ডাটা লোড করা
+    defaultWarish.forEach(person => addWarishField(person));
+
+    function editForm() {
+        document.getElementById('formContainer').style.display = 'block';
+        document.getElementById('previewArea').style.display = 'none';
+        document.getElementById('formContainer').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function generateCertificate() {
+        const sonodNo = document.getElementById('input_sonod_no').value;
+        const date = document.getElementById('input_date').value;
+        const boyanText = document.getElementById('input_boyan').value;
+        
+        const qrName = document.getElementById('qr_name').value;
+        const qrFather = document.getElementById('qr_father').value;
+        const qrMother = document.getElementById('qr_mother').value;
+        const qrAddress = document.getElementById('qr_address').value;
+        
+        const logoInput = document.getElementById('input_logo');
+
+        if (!logoInput.files || !logoInput.files[0]) {
+            alert("অনুগ্রহ করে একটি লোগো ছবি আপলোড করুন!");
+            return;
+        }
+
+        document.getElementById('view_sonod_no').innerText = "স্মারক নং- " + sonodNo;
+        document.getElementById('view_date').innerText = "তারিখ- " + date;
+        document.getElementById('view_boyan').innerText = boyanText;
+
+        const tbody = document.getElementById('warish_table_body');
+        tbody.innerHTML = '';
+
+        // চেনা ছন্দে ক্লাস নেম দিয়ে ডাটা রিড করার লুপ পদ্ধতি
+        const names = document.getElementsByClassName('w_name');
+        const nids = document.getElementsByClassName('w_nid');
+        const dobs = document.getElementsByClassName('w_dob');
+        const rels = document.getElementsByClassName('w_rel');
+        const coms = document.getElementsByClassName('w_com');
+
+        let validCount = 0;
+        let qrTableText = "";
+
+        for (let i = 0; i < names.length; i++) {
+            const wName = names[i].value.trim();
+            const wNid = nids[i].value.trim();
+            const wDob = dobs[i].value.trim();
+            const wRel = rels[i].value.trim();
+            const wCom = coms[i].value.trim();
+
+            if (wName !== "") {
+                validCount++;
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${toBanglaNum(validCount)}</td>
+                        <td>${wName}</td>
+                        <td>${wNid}</td>
+                        <td>${wDob}</td>
+                        <td>${wRel}</td>
+                        <td>${wCom}</td>
+                    </tr>
+                `;
+                qrTableText += `${validCount}. ${wName} (${wRel})\n`;
+            }
+        }
+
+        document.getElementById('view_total_warish').innerText = toBanglaNum(validCount);
+
+        const qrContent = `--- শ্রীপুর পৌরসভা কার্যালয় ---\nওয়ারিশ সনদপত্র অনলাইন যাচাইকরণ\n\nসনদ নং: ${sonodNo}\nতারিখ: ${date}\nমৃত ব্যক্তির নাম: ${qrName}\nপিতার নাম: ${qrFather}\nমাতার নাম: ${qrMother}\nঠিকানা: ${qrAddress}\n\nমোট ওয়ারিশ সংখ্যা: ${validCount} জন\nতালিকা:\n${qrTableText}`;
+
+        const qrContainer = document.getElementById('qrcode_area');
+        qrContainer.innerHTML = "";
+        
+        const qrImg = new Image();
+        const encodedData = encodeURIComponent(qrContent);
+        
+        qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodedData}&charset-source=UTF-8`;
+        qrImg.alt = "QR Code";
+
+        qrImg.onload = function() {
+            qrContainer.appendChild(qrImg);
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('view_logo_left').src = e.target.result;
+                document.getElementById('view_logo_watermark').src = e.target.result;
+                document.getElementById('watermarkBg').style.display = 'block';
+                
+                document.getElementById('formContainer').style.display = 'none';
+                document.getElementById('previewArea').style.display = 'block';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+            reader.readAsDataURL(logoInput.files[0]);
+        };
+
+        qrImg.onerror = function() {
+            alert("কিউআর কোড জেনারেশনে সমস্যা হচ্ছে। আবার চেষ্টা করুন।");
+        };
+    }
+</script>
+
+</body>
+</html>
