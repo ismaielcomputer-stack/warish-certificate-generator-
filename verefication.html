@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <title>সনদ যাচাইকরণ - শ্রীপুর পৌরসভা</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; line-height: 1.6; }
+        .container { max-width: 600px; margin: auto; border: 2px solid #006a4e; padding: 20px; border-radius: 10px; }
+        h2 { color: #006a4e; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="container" id="result">
+        <h2>সনদ যাচাইকরণ ফলাফল</h2>
+        <div id="content">তথ্য লোড হচ্ছে...</div>
+    </div>
+
+    <script>
+        // ইউআরএল থেকে ডেটা পড়ার ফাংশন
+        const params = new URLSearchParams(window.location.search);
+        const data = params.get('data');
+
+        if(data) {
+            // ডেটা ডিকোড করে এখানে প্রদর্শন করুন
+            document.getElementById('content').innerText = decodeURIComponent(data);
+        } else {
+            document.getElementById('content').innerHTML = "সঠিক সনদ পাওয়া যায়নি।";
+        }
+    </script>
+</body>
+</html>
